@@ -1,0 +1,58 @@
+board = [' ' for _ in range(9)]
+
+
+def print_board():
+    print('--------------')
+    for i in range(3):
+        print('|', board[i * 3], '|', board[i * 3 + 1], '|', board[i * 3 + 2], '|')
+        print('--------------')
+
+
+def make_move(player, position):
+    board[position] = player
+
+
+def is_winner(player):
+    winning_combinations = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ]
+    for combination in winning_combinations:
+        if all(board[i] == player for i in combination):
+            return True
+    return False
+
+
+def is_board_full():
+    return ' ' not in board
+
+
+def play_game():
+    print('Приятной игры в крестики-нолики')
+    print('Игрок 1 играет за X, Игрок 2 за O')
+    current_player = 'X'
+
+    while True:
+        print_board()
+        position = int(input(f'Игрок {current_player}, введите ваш ход (1-9): ')) - 1
+
+        if position < 0 or position > 8 or board[position] != ' ':
+            print('Так нельзя сходить! Давай по другому')
+            continue
+
+        make_move(current_player, position)
+
+        if is_winner(current_player):
+            print_board()
+            print(f'Игрок {current_player} победил!')
+            break
+        elif is_board_full():
+            print_board()
+            print("Ничья =)")
+            break
+
+        current_player = 'O' if current_player == 'X' else 'X'
+
+
+play_game()
