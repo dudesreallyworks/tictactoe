@@ -1,90 +1,84 @@
 import random
 
-
 # Создание игрового поля
-def create_board():
-    board = []
-    for _ in range(10):
-        row = ['O'] * 10
-        board.append(row)
-    return board
+board = [['O' for _ in range(10)] for _ in range(10)]
 
+# Расстановка кораблей компьютером
+ships = [(3, 'A'), (2, 'B'), (2, 'B'), (1, 'C'), (1, 'C'), (1, 'C'), (1, 'C')]
 
-# Вывод игрового поля
-def print_board(board):
-    for row in board:
-        print(' '.join(row))
-
-
-# Размещение кораблей на игровом поле
-def place_ships(board):
-    ships = {'destroyer': 2, 'cruiser': 3, 'battleship': 4}
-    for ship, size in ships.items():
-        while True:
-            x = random.randint(0, 9)
-            y = random.randint(0, 9)
-            orientation = random.choice(['horizontal', 'vertical'])
-            if board[x][y] == 'O':
-                if orientation == 'horizontal':
-                    if y + size <= 10 and all(board[x][y + i] == 'O' for i in range(size)):
-                        for i in range(size):
-                            board[x][y + i] = ship[0]
-                        break
-                else:
-                    if x + size <= 10 and all(board[x + i][y] == 'O' for i in range(size)):
-                        for i in range(size):
-                            board[x + i][y] = ship[0]
-                        break
-
-
-# Проверка минимального расстояния между короблями
-def check_ship_placement(board):
-    ship_lengths = [3, 2, 1]  # длины кораблей для проверки
-    for length in ship_lengths:
-        for row in range(10):
-            for col in range(10):
-                if board[row][col] == "X":
-                    continue
-                if col + length <= 10:
-                    if board[row][col:col + length].count("#") > 0:
-                        return False
-                if row + length <= 10:
-                    for r in range(row, row + length):
-                        if board[r][col] == "#":
-                            return False
-    return True
-
-
-# Выстрел по координатам
-def fire(board, x, y):
-    if x < 0 or x >= 10 or y < 0 or y >= 10:
-        print('Вы ввели некорректные координаты!')
-        return
-    if board[x][y] == 'O':
-        print('Мимо!')
-        board[x][y] = 'T'
-    elif board[x][y] == 'T':
-        print('Вы уже стреляли в эту клетку!')
-    else:
-        ship = board[x][y]
-        board[x][y] = 'X'
-        if not any(ship in row for row in board):
-            print(f'Вы потопили корабль {ship}!')
-
-
-# Главная функция игры
-def play_battleship():
-    board = create_board()
-    place_ships(board)
+for ship_size, ship_code in ships:
     while True:
-        print_board(board)
-        x = int(input('Введите номер строки (0-9): '))
-        y = int(input('Введите номер столбца (0-9): '))
-        fire(board, x, y)
-        if all(all(cell == 'X' or cell == 'T' for cell in row) for row in board):
-            print('Вы победили!')
+        x = random.randint(0, 9)
+        y = random.randint(0, 9)
+        orientation = random.choice(['h', 'v'])
+        positions = []
+
+        if orientation == 'h' and x + ship_size <= 10:
+            positions = [(x + i, y) for i in range(ship_size)]
+        elif orientation == 'v' and y + ship_size <= 10:
+            positions = [(x, y + i) for i in range(ship_size)]
+
+        if all(board[pos[0]][pos[1]] == 'O' for pos in positions):
+            for pos in positions:
+                board[pos[0]][pos[1]] = ship_code
             break
 
 
-# Запуск игры
-play_battleship()
+# Функция для отображения состояния игрового поля
+def print_board(board):
+    print('   A B C D E F G H I J')
+    for i, row in enumerate(board):
+        print(i, ' '.join(row))
+
+
+# Функция для проверки наличия корабля по координатам
+def is_ship_hit(board, x, y):
+    return board[x][y] != 'O'
+
+
+# Основной цикл игры
+while True:
+    print_board(board)
+
+    # Ввод координат выстрела игроком
+    while True:
+        player_shot = input("Введите координаты выстрела (например, B3): ")
+
+        if len(player_shot) == 2 and player_shot[0].isalpha() and player_shot[1].isdigit():
+            x = int(player_shot[1])
+            y = ord(player_shot[0].upper()) - ord('A')
+
+            if 0 <= x < 10 and 0 <= y < 10:
+                break
+
+    # Проверка попадания игрока
+    if is_ship_hit(board, x, y):
+        print('Попадание!')
+        board[x][y] = 'X'
+    else:
+        print('Мимо!')
+
+    # Проверка условия победы игрока
+    if all(board[i][j] != 'A' for i in range(10) for j in range(10)):
+        print('Вы победили!')
+        break
+
+    # Ход компьютера
+    while True:
+        x = random.randint(0, 9)
+        y = random.randint(0, 9)
+
+        if not is_ship_hit(board, x, y):
+            break
+
+    # Проверка попадания компьютера
+    if is_ship_hit(board, x, y):
+        print('Компьютер попал!')
+        board[x][y] = 'X'
+    else:
+        print('Компьютер промахнулся!')
+
+    # Проверка условия победы компьютера
+    if all(board[i][j] != 'A' for i in range(10) for j in range(10)):
+        print('Компьютер победил!')
+        break
