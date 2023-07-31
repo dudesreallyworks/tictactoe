@@ -1,0 +1,90 @@
+import random
+
+
+# Создание игрового поля
+def create_board():
+    board = []
+    for _ in range(10):
+        row = ['O'] * 10
+        board.append(row)
+    return board
+
+
+# Вывод игрового поля
+def print_board(board):
+    for row in board:
+        print(' '.join(row))
+
+
+# Размещение кораблей на игровом поле
+def place_ships(board):
+    ships = {'destroyer': 2, 'cruiser': 3, 'battleship': 4}
+    for ship, size in ships.items():
+        while True:
+            x = random.randint(0, 9)
+            y = random.randint(0, 9)
+            orientation = random.choice(['horizontal', 'vertical'])
+            if board[x][y] == 'O':
+                if orientation == 'horizontal':
+                    if y + size <= 10 and all(board[x][y + i] == 'O' for i in range(size)):
+                        for i in range(size):
+                            board[x][y + i] = ship[0]
+                        break
+                else:
+                    if x + size <= 10 and all(board[x + i][y] == 'O' for i in range(size)):
+                        for i in range(size):
+                            board[x + i][y] = ship[0]
+                        break
+
+
+# Проверка минимального расстояния между короблями
+def check_ship_placement(board):
+    ship_lengths = [3, 2, 1]  # длины кораблей для проверки
+    for length in ship_lengths:
+        for row in range(10):
+            for col in range(10):
+                if board[row][col] == "X":
+                    continue
+                if col + length <= 10:
+                    if board[row][col:col + length].count("#") > 0:
+                        return False
+                if row + length <= 10:
+                    for r in range(row, row + length):
+                        if board[r][col] == "#":
+                            return False
+    return True
+
+
+# Выстрел по координатам
+def fire(board, x, y):
+    if x < 0 or x >= 10 or y < 0 or y >= 10:
+        print('Вы ввели некорректные координаты!')
+        return
+    if board[x][y] == 'O':
+        print('Мимо!')
+        board[x][y] = 'T'
+    elif board[x][y] == 'T':
+        print('Вы уже стреляли в эту клетку!')
+    else:
+        ship = board[x][y]
+        board[x][y] = 'X'
+        if not any(ship in row for row in board):
+            print(f'Вы потопили корабль {ship}!')
+
+
+# Главная функция игры
+def play_battleship():
+    board = create_board()
+    place_ships(board)
+    while True:
+        print_board(board)
+        x = int(input('Введите номер строки (0-9): '))
+        y = int(input('Введите номер столбца (0-9): '))
+        fire(board, x, y)
+        if all(all(cell == 'X' or cell == 'T' for cell in row) for row in board):
+            print('Вы победили!')
+            break
+
+
+# Запуск игры
+play_battleship()
