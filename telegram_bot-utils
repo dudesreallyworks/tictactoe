@@ -1,0 +1,36 @@
+import requests
+import json
+
+from config import keys
+
+
+class ConvertionException(Exception):
+    pass
+
+
+class Converter:
+    @staticmethod
+    def converter(quote: str, base: str, amount: str):
+        if quote == base:
+            raise ConvertionException(f'Невозможно перевести одинаковые валюты {base}.')
+
+        try:
+            quote_ticker = keys[quote]
+        except KeyError:
+            raise ConvertionException(f'Не удалось обработать валюту {quote}')
+
+        try:
+            base_ticker = keys[base]
+        except KeyError:
+            raise ConvertionException(f'Не удалось обработать валюту {base}')
+
+        try:
+            base_ticker = keys[base]
+        except ValueError:
+            raise ConvertionException(f'Не удалось обработать кол-во  {amount}')
+
+        r = requests.get(
+            f'https://api.currencyapi.com/v3/latest?apikey=cur_live_hYlNGlbAz0vALDXR98zbDSy6D3XcizmUAvaDCojw&currencies={quote_ticker}&base_currency={base_ticker}%27')
+        total_base = json.loads(r.content)[keys[base]]
+
+        return total_base
